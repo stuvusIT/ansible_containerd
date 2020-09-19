@@ -1,0 +1,58 @@
+{%- macro yaml2inline_toml(item, depth) -%}
+  {%- if item is string or item is number -%}
+    {#- First, process all primitive types. -#}
+    {{ item | to_json }}
+  {%- elif item is mapping -%}
+    {#- Second, process all mappings. -#}
+    {#- Note that inline mappings must not contain newlines (except inside contained lists). -#}
+    {{ "{" }}
+    {%- for key, value in item.items() | sort -%}
+      {{  " "
+        + (key | to_json)
+        + " = "
+        + yaml2inline_toml(value, depth)
+      }}
+      {%- if not loop.last -%}{{ "," }}{%- endif -%}
+    {%- endfor -%}
+    {{ " }" }}
+  {%- else -%}
+    {#- Third, process all lists. -#}
+    {%- if item | length == 0 -%}{{ "[]" }}{%- else -%}
+      {{ "[" }}
+      {%- for entry in item -%}
+        {{  "\n"
+          + ("  " * (depth + 1))
+          + yaml2inline_toml(entry, depth + 1)
+        }}
+        {%- if not loop.last -%}{{ "," }}{%- endif -%}
+      {%- endfor -%}
+      {{ "\n" + ("  " * depth) + "]" }}
+    {%- endif -%}
+  {%- endif -%}
+{%- endmacro -%}
+
+{%- macro yaml2toml(item, super_keys=[]) -%}
+  {%- for key, value in item.items() | sort -%}
+    {%- if value is not mapping -%}
+      {#- First, process all non-mappings. -#}
+      {{  ("  " * (super_keys | length))
+        + (key | to_json)
+        + " = "
+        + (yaml2inline_toml(value, super_keys | length))
+        + "\n"
+      }}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- for key, value in item.items() | sort -%}
+    {%- if value is mapping -%}
+      {#- Second, process all mappings. -#}
+      {{  "\n"
+        + ("  " * (super_keys | length))
+        + "["
+        + ((super_keys+[key]) | map('to_json') | join("."))
+        + "]\n"
+        + yaml2toml(value, super_keys+[key])
+      }}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endmacro -%}

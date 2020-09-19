@@ -1,2 +1,44 @@
----
 
+- name: Add docker apt key
+  apt_key:
+    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+
+
+- name: Add docker apt repository
+  copy:
+    content: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
+    dest: /etc/apt/sources.list.d/docker.list
+  register: containerd_apt_repo_task
+
+- name: apt update
+  apt:
+    update_cache: yes
+  when: containerd_apt_repo_task.changed
+
+- name: Create containerd configuration directory
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: Configure containerd
+  template:
+    src: config.toml.j2
+    dest: /etc/containerd/config.toml
+  notify:
+    - Restart containerd service
+
+- name: Install required packages
+  apt:
+    name:
+      - containerd.io
+  notify:
+    - Reload systemd configuration
+    - Restart containerd service
+
+- meta: flush_handlers
+
+- name: Enable containerd service
+  service:
+    name: containerd
+    enabled: True
+    state: started

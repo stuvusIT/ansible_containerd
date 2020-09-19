@@ -1,0 +1,5 @@
+# {{ ansible_managed }}
+
+{% from 'yaml2toml_macro.j2' import yaml2toml with context -%}
+
+{{ yaml2toml(containerd_config) }}
