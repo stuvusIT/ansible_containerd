@@ -1,27 +1,34 @@
 # ansible_containerd
 
-This role installs and configures [containerd](https://github.com/containerd/containerd) on Ubuntu
-or Debian. It uses the pre-built version of containerd found in the Docker apt repository.
+This role installs and configures [containerd](https://github.com/containerd/containerd) on Debian
+(or maybe Ubuntu).
+It uses the pre-built version of containerd found in the Docker apt repository.
+
 
 ## Requirements
 
-[Ubuntu](https://www.ubuntu.com/) or [Debian](https://www.debian.org/) on a machine with `amd64`
-architecture.
+[Debian](https://www.debian.org/) on a machine with `amd64` architecture.
+[Ubuntu](https://www.ubuntu.com/) might also work.
+
 
 ## Role Variables
 
 | Name                | Default                     | Description                         |
 | :------------------ | :-------------------------- | :---------------------------------- |
-| `containerd_config` | _see `./defaults/main.yml`_ | See [Configuration](#configuration) |
+| `containerd_config` | _see [./defaults/main.yml](./defaults/main.yml)_ | See [Configuration](#configuration) |
+
 
 ## Configuration
 
 containerd is configured through the config file `/etc/containerd/config.toml`.
 This role converts the content of the `containerd_config` variable to TOML and writes it to the
 config file.
-In order to customize the config, copy this default config (delived with this Ansible role) from
-`./defaults/main.yml` to your playbook and edit it.
+In order to customize the config, copy this default config (delivered with this Ansible role) from
+[./defaults/main.yml](./defaults/main.yml) to your playbook and edit it.
+If you set `containerd_config` yourself, then **only** your config is used,
+i.e. the config is **not** merged into the default.
 For an example see [Example Playbook](#example-playbook).
+
 
 ## Example Playbook
 
@@ -150,3 +157,13 @@ The following example playbook assumes that you cloned this role to `roles/conta
             pool_name: ""
             base_image_size: ""
 ```
+
+
+## License
+
+This work is licensed under the [MIT License](./LICENSE).
+
+
+## Author Information
+
+- [Sebastian Hasler (haslersn)](https://github.com/haslersn) _sebastian.hasler at stuvus.uni-stuttgart.de_
