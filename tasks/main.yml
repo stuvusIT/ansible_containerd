@@ -30,7 +30,7 @@
 - name: Install required packages
   apt:
     name:
-      - containerd.io
+      - containerd.io=1.4.3-1 # TODO: Remove Pin after runc v1.0.0-rc94 is available.
   notify:
     - Reload systemd configuration
     - Restart containerd service
