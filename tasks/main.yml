@@ -5,9 +5,9 @@
 
 
 - name: Add docker apt repository
-  copy:
-    content: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
-    dest: /etc/apt/sources.list.d/docker.list
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
+    filename: docker
   register: containerd_apt_repo_task
 
 - name: apt update
