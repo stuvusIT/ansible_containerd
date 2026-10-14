@@ -1,19 +1,37 @@
 ---
-- name: Add docker apt key
-  apt_key:
-    url: https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg
+- name: Remove legacy docker apt repository
+  file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+  register: containerd_legacy_repo_task
 
+- name: Check for apt-key
+  stat:
+    path: /usr/bin/apt-key
+  register: containerd_apt_key_stat
+
+- name: Remove legacy docker apt key
+  apt_key:
+    id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+    state: absent
+  when: containerd_apt_key_stat.stat.exists
 
 - name: Add docker apt repository
-  apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable
-    filename: docker
+  deb822_repository:
+    name: docker
+    types: deb
+    architectures: amd64
+    uris: https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }}
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: stable
+    signed_by: https://download.docker.com/linux/{{ ansible_facts['distribution'] | lower }}/gpg
+    install_python_debian: True
   register: containerd_apt_repo_task
 
 - name: apt update
   apt:
     update_cache: yes
-  when: containerd_apt_repo_task.changed
+  when: containerd_apt_repo_task.changed or containerd_legacy_repo_task.changed
 
 - name: Create containerd configuration directory
   file:
